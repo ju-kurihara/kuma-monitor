@@ -1,21 +1,13 @@
 import os
 import re
 from playwright.sync_api import sync_playwright
-import tweepy # X投稿用のライブラリ
 
-def post_to_x(message):
-    # GitHubの金庫から鍵を取り出す
-    api_key = os.environ.get("X_API_KEY")
-    api_secret = os.environ.get("X_API_SECRET")
-    access_token = os.environ.get("X_ACCESS_TOKEN")
-    access_secret = os.environ.get("X_ACCESS_SECRET")
-
-    # Xに接続して投稿
-    client = tweepy.Client(
-        consumer_key=api_key, consumer_secret=api_secret,
-        access_token=access_token, access_token_secret=access_secret
-    )
-    client.create_tweet(text=message)
+def post_to_x_simulation(message):
+    # 本番ではここにXへの送信命令が入ります
+    print("------------------------------------------")
+    print("📢 【X投稿シミュレーション】")
+    print(message)
+    print("------------------------------------------")
 
 def run():
     last_data_file = "last_data.txt"
@@ -42,29 +34,33 @@ def run():
                         header = cells[0].inner_text() # 日時＋場所
                         detail = cells[2].inner_text() # 状況
                         
-                        # 既読チェック（前回の最新と同じなら終了）
+                        # 既読チェック
                         if header == old_data:
                             break
                         
-                        # 年(/26)をカットして理想の形式に整形
+                        # 日付整形（年 /26 を消す）
                         display_header = re.sub(r'/\d{2}\s', ' ', header)
+                        
+                        # あなたの「理想の形式」に組み立て
+                        # 【新潟県クマ出没情報】
+                        # 日時 場所
+                        # 状況（改行して表示）
                         new_reports.append(f"【新潟県クマ出没情報】\n{display_header}\n{detail}")
 
                 if new_reports:
-                    print(f"新着を {len(new_reports)} 件見つけました。")
-                    # 古いものから順にXへ投稿
+                    print(f"★新着を {len(new_reports)} 件見つけました。")
+                    # 古いものから順にログへ表示（シミュレーション）
                     for report in reversed(new_reports):
-                        print(f"投稿中: {report}")
-                        post_to_x(report)
+                        post_to_x_simulation(report)
 
-                    # 今回の最新データを保存
+                    # 最後に、今回取得した中で一番新しいものを保存（次回は「新着なし」になる）
                     latest_id = rows[0].query_selector('.tabulator-cell').inner_text()
                     with open(last_data_file, "w", encoding="utf-8") as f:
                         f.write(latest_id)
                 else:
-                    print("新着なし。投稿をスキップしました。")
+                    print("新着情報はありませんでした（前回から更新なし）。")
             else:
-                print("データが空でした。")
+                print("原本サイトのデータが読み取れませんでした。")
         except Exception as e:
             print(f"エラー発生: {e}")
         browser.close()
