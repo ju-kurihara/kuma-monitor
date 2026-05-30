@@ -1,9 +1,8 @@
 import os
-import requests
 from playwright.sync_api import sync_playwright
 
 def run():
-    ifttt_key = os.environ.get("IFTTT_KEY")
+    # 練習モード：IFTTTへの送信をストップしています
     last_data_file = "last_data.txt"
 
     with sync_playwright() as p:
@@ -19,27 +18,21 @@ def run():
             cells = page.query_selector_all('.tabulator-cell')
             
             if cells:
-                # 最新の1件分（最初の5セル分）を抽出
-                new_data = " / ".join([cells[i].inner_text() for i in range(min(len(cells), 5))])
-                print(f"取得したデータ: {new_data}")
-
-                # 【新着判定】前回保存したデータと比較
-                old_data = ""
-                if os.path.exists(last_data_file):
-                    with open(last_data_file, "r", encoding="utf-8") as f:
-                        old_data = f.read().strip()
-
-                if new_data != old_data:
-                    print("★新着情報を発見しました！IFTTTへ送信します。")
-                    # IFTTTに送信（Value1にテキストを入れる）
-                    ifttt_url = f"https://maker.ifttt.com/trigger/kuma_alert/with/key/{ifttt_key}"
-                    requests.post(ifttt_url, json={"value1": new_data})
-                    
-                    # 今回のデータを保存
-                    with open(last_data_file, "w", encoding="utf-8") as f:
-                        f.write(new_data)
-                else:
-                    print("新着はありませんでした。")
+                # データを抽出し、投稿用メッセージを組み立てる
+                raw_text = [cells[i].inner_text() for i in range(min(len(cells), 5))]
+                
+                # ここで文章の見た目を調整できます
+                # 例：「日時：〇〇 / 場所：〇〇」のように整形
+                report_text = f"【新潟県クマ出没情報】\n日時：{raw_text[0]}\n場所：{raw_text[1]}\n詳細：{raw_text[3]}"
+                
+                print("------------------------------------------")
+                print("★【SNS投稿シミュレーション】★")
+                print("実際にXに投稿される予定の文章は以下です：")
+                print("\n" + report_text + "\n")
+                print("------------------------------------------")
+                
+                # 新着判定のロジックだけは生かしておきます
+                print(f"（内部判定用）現在の最新データ: {raw_text[0]}")
             else:
                 print("データが見つかりませんでした。")
         except Exception as e:
