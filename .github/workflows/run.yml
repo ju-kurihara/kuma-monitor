@@ -1,0 +1,21 @@
+name: Kuma Monitor
+on:
+  workflow_dispatch: # 手動実行用スイッチ
+  schedule:
+    - cron: '0 * * * *' # 1時間おきに自動実行
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install dependencies
+        run: |
+          pip install playwright
+          playwright install chromium
+      - name: Run scraper
+        run: python scrape.py
