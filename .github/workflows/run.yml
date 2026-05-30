@@ -15,7 +15,7 @@ jobs:
           python-version: '3.9'
       - name: Install dependencies
         run: |
-          pip install playwright
+          pip install playwright requests tweepy
           playwright install chromium
       - name: Run scraper
         run: python scrape.py
