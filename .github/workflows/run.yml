@@ -19,3 +19,10 @@ jobs:
           playwright install chromium
       - name: Run scraper
         run: python scrape.py
+      - name: Commit and push if changed
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add last_data.txt
+          git commit -m "Update last data" || exit 0
+          git push
